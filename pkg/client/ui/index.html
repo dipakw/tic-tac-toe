@@ -7,7 +7,59 @@
     <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-    Welcome!
+    
+    <div class="wrapper">
+        <div id="root">
+            <div id="status">
+                <span>Disconnected</span>
+            </div>
+
+            <div id="wait">
+                Registering..
+            </div>
+
+            <div id="me" class="profile none">
+                <div>Your Name</div>
+                <div><input type="text" id="me_name" readonly /></div>
+
+                <div>Your ID</div>
+                <div><input type="text" id="me_id" readonly /></div>
+            </div>
+
+            <div id="form" class="none">
+                <div>ID to play with</div>
+                <div><input type="text" autocomplete="off" /></div>
+                <button>Play</button>
+            </div>
+
+            <div id="board" class="none">
+                <div>
+                    <button></button>
+                    <button></button>
+                    <button></button>
+                </div>
+                <div>
+                    <button></button>
+                    <button></button>
+                    <button></button>
+                </div>
+                <div>
+                    <button></button>
+                    <button></button>
+                    <button></button>
+                </div>
+            </div>
+
+            <div id="peer" class="profile none">
+                <div>Peer Name</div>
+                <div><input type="text" readonly /></div>
+
+                <div>Peer ID</div>
+                <div><input type="text" readonly /></div>
+            </div>
+        </div>
+    </div>
+
     <script src="/app.js"></script>
 </body>
 </html>

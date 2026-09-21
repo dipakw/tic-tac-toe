@@ -64,11 +64,15 @@ func (c *Client) endpointRegister(w http.ResponseWriter, _ *http.Request) {
 				"message": "Failed to register the user",
 			})
 		} else {
+			c.registered = true
 			c.profile = user
+			c.mode = "ask" // After registration, ask who they want to play with.
 		}
 	}
 
-	c.send(w, http.StatusOK, c.profile.WithoutToken())
+	c.send(w, http.StatusOK, map[string]any{})
+
+	go c.pushState()
 }
 
 func (c *Client) endpointStartGame(w http.ResponseWriter, r *http.Request) {

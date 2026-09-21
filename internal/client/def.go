@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"sync"
 	"ttt-game/internal/common"
+	"ttt-game/internal/game"
 
 	"github.com/gorilla/websocket"
 )
@@ -30,6 +31,7 @@ type Client struct {
 	backend  *Backend
 
 	// Registration info.
+	mode       string
 	registered bool
 	profile    *common.User
 }
@@ -43,4 +45,10 @@ type SSE struct {
 type Backend struct {
 	baseUrl string
 	ws      *websocket.Conn
+}
+
+type State struct {
+	Mode    string         `json:"mode"`
+	Rows    [][]*game.Cell `json:"rows"`
+	Profile *common.User   `json:"profile"`
 }

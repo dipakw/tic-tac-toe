@@ -5,15 +5,19 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"time"
 )
 
 func New(cfg *Config) (*Client, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	client := &Client{
-		cfg:    cfg,
-		ctx:    ctx,
-		cancel: cancel,
+		cfg:      cfg,
+		ctx:      ctx,
+		cancel:   cancel,
+		sseConns: map[string]*SSE{},
+		backend:  newBackend(fmt.Sprintf("http://%s", net.JoinHostPort(cfg.ServerHost, cfg.ServerPort))),
+		mode:     "wait",
 	}
 
 	if err := client.setup(); err != nil {
@@ -62,4 +66,17 @@ func (c *Client) setup() error {
 	}
 
 	return nil
+}
+
+func (c *Client) pushState() {
+	state := &State{
+		Mode:    c.mode,
+		Profile: c.profile.WithoutToken(),
+	}
+
+	time.Sleep(100 * time.Millisecond)
+
+	for _, sse := range c.sseConns {
+		sse.Write(state)
+	}
 }
