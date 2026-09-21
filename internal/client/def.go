@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"io/fs"
 	"net"
 	"net/http"
 	"sync"
@@ -15,6 +16,7 @@ type Config struct {
 	ServerPort string
 	ClientHost string
 	ClientPort string
+	UIFS       fs.FS
 }
 
 type Client struct {

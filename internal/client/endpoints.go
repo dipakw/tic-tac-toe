@@ -7,6 +7,10 @@ import (
 	"ttt-game/internal/common"
 )
 
+func (c *Client) endpointUI(w http.ResponseWriter, r *http.Request) {
+	http.FileServer(http.FS(c.cfg.UIFS)).ServeHTTP(w, r)
+}
+
 func (c *Client) endpointSSE(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")

@@ -40,17 +40,16 @@ func (c *Client) Run() {
 	mux.HandleFunc("/register", c.endpointRegister)
 	mux.HandleFunc("/start-game", c.endpointStartGame)
 	mux.HandleFunc("/click", c.endpointClick)
+	mux.HandleFunc("/", c.endpointUI)
 
 	c.service = &http.Server{
 		Handler: mux,
 	}
 
-	go func() {
-		if err := c.service.Serve(c.ln); err != nil &&
-			err != http.ErrServerClosed {
-			fmt.Printf("HTTP server error: %v\n", err)
-		}
-	}()
+	if err := c.service.Serve(c.ln); err != nil &&
+		err != http.ErrServerClosed {
+		fmt.Printf("HTTP server error: %v\n", err)
+	}
 }
 
 func (c *Client) setup() error {
