@@ -46,7 +46,11 @@ func (s *Server) endpointRegister(w http.ResponseWriter, r *http.Request) {
 	defer s.mu.Unlock()
 	s.users[user.peer.ID] = user
 
-	s.send(w, http.StatusOK, user)
+	s.send(w, http.StatusOK, &common.User{
+		ID:    id,
+		Name:  payload.Name,
+		Token: user.token,
+	})
 }
 
 func (s *Server) endpointAddLiveConnection(w http.ResponseWriter, r *http.Request) {
