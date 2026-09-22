@@ -19,7 +19,7 @@ func (s *Server) endpointRegister(w http.ResponseWriter, r *http.Request) {
 	payload, err := common.GetRequestPayloadAs[common.PayloadRegister](r)
 
 	if err != nil {
-		s.send(w, http.StatusBadRequest, map[string]any{
+		s.send(w, http.StatusBadRequest, &common.Kv{
 			"message": err.Error(),
 		})
 
@@ -88,7 +88,7 @@ func (s *Server) endpointStartGame(w http.ResponseWriter, r *http.Request) {
 	payload, err := common.GetRequestPayloadAs[common.PayloadStartGame](r)
 
 	if err != nil {
-		s.send(w, http.StatusBadRequest, map[string]any{
+		s.send(w, http.StatusBadRequest, &common.Kv{
 			"message": err.Error(),
 		})
 
@@ -98,7 +98,7 @@ func (s *Server) endpointStartGame(w http.ResponseWriter, r *http.Request) {
 	var peer *User
 
 	if peer = s.getUser(payload.PeerID); peer == nil {
-		s.send(w, http.StatusUnprocessableEntity, map[string]any{
+		s.send(w, http.StatusUnprocessableEntity, &common.Kv{
 			"message": "Requested peer is not available.",
 		})
 
@@ -118,7 +118,7 @@ func (s *Server) endpointStartGame(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err.Error())
 
-		s.send(w, http.StatusInternalServerError, map[string]any{
+		s.send(w, http.StatusInternalServerError, &common.Kv{
 			"message": "Failed to start the game",
 		})
 
@@ -127,8 +127,6 @@ func (s *Server) endpointStartGame(w http.ResponseWriter, r *http.Request) {
 
 	sessId := common.GenerateAlphaNumId(20)
 
-	s.mu.Lock()
-
 	// Add session id to players.
 	s.users[me.id].sessionId = sessId
 	s.users[peer.id].sessionId = sessId
@@ -136,9 +134,7 @@ func (s *Server) endpointStartGame(w http.ResponseWriter, r *http.Request) {
 	// Add session to the list.
 	s.sessions[sessId] = session
 
-	s.mu.Unlock()
-
-	s.send(w, http.StatusInternalServerError, map[string]any{
+	s.send(w, http.StatusOK, &common.Kv{
 		"session_id": sessId,
 	})
 }

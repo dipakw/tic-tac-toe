@@ -17,17 +17,17 @@ func GetRequestPayloadAs[T any](r *http.Request) (*T, error) {
 	return &dest, nil
 }
 
-func HttpRequest[T any](method, url string, payload any) (*T, error) {
+func HttpRequest[T any](method, url string, payload any) (*T, int, error) {
 	body, err := json.Marshal(payload)
 
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	req, err := http.NewRequest(method, url, bytes.NewReader(body))
 
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -35,20 +35,20 @@ func HttpRequest[T any](method, url string, payload any) (*T, error) {
 	resp, err := http.DefaultClient.Do(req)
 
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("HTTP request failed: %s", resp.Status)
+		return nil, resp.StatusCode, fmt.Errorf("HTTP request failed: %s", resp.Status)
 	}
 
 	var result T
 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, err
+		return nil, resp.StatusCode, err
 	}
 
-	return &result, nil
+	return &result, resp.StatusCode, nil
 }

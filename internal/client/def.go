@@ -34,6 +34,7 @@ type Client struct {
 	mode       string
 	registered bool
 	profile    *common.User
+	sessionId  string
 }
 
 type SSE struct {
@@ -45,6 +46,7 @@ type SSE struct {
 type Backend struct {
 	baseUrl string
 	ws      *websocket.Conn
+	c       *Client
 }
 
 type State struct {

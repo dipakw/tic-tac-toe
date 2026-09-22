@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"ttt-game/internal/common"
 )
 
@@ -76,7 +77,32 @@ func (c *Client) endpointRegister(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (c *Client) endpointStartGame(w http.ResponseWriter, r *http.Request) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
+	peerId := r.URL.Query().Get("peer_id")
+	peerId = strings.TrimSpace(peerId)
+
+	if peerId == "" || peerId == c.profile.ID {
+		c.send(w, http.StatusBadRequest, nil)
+		return
+	}
+
+	sessionId, err := c.backend.playWith(peerId, c.profile.Token)
+
+	if err != nil {
+		c.send(w, http.StatusInternalServerError, nil)
+		log.Println("failed to start the game:", err.Error())
+		return
+	}
+
+	c.sessionId = sessionId
+
+	c.send(w, http.StatusOK, &common.Kv{
+		"session_id": sessionId,
+	})
+
+	go c.backend.syncPeers(sessionId, c.profile.Token)
 }
 
 func (s *Client) endpointClick(w http.ResponseWriter, r *http.Request) {

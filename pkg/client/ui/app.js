@@ -42,8 +42,8 @@ class App {
     connected = false;
 
     getCell(x, y) {
-        const row = document.querySelector(`#board > div:nth-child(${x+1})`);
-        const cell = row.querySelector(`button:nth-child(${y+1})`);
+        const row = document.querySelector(`#board > div:nth-child(${x + 1})`);
+        const cell = row.querySelector(`button:nth-child(${y + 1})`);
         return cell;
     }
 
@@ -82,6 +82,22 @@ class App {
         span.textContent = "Disconnected";
     }
 
+    async startGame() {
+        const peerId = document.querySelector("#play_peer_id").value.trim();
+
+        if (peerId == "") {
+            return;
+        }
+
+        await fetch(`/start-game?peer_id=${peerId}`);
+    }
+
+    setupEventListeners() {
+        document.querySelector("#play").addEventListener("click", () => {
+            this.startGame();
+        });
+    }
+
     setupBackend() {
         this.backend = new Backend({
             listen: (event, data) => {
@@ -118,9 +134,14 @@ class App {
         }
     }
 
-    updateMe() {
-        document.querySelector("#me_name").value = this.state?.profile?.name;
-        document.querySelector("#me_id").value = this.state?.profile?.id;
+    updateMeInfo() {
+        document.querySelector("#me_name").value = this.state?.profile?.name || "";
+        document.querySelector("#me_id").value = this.state?.profile?.id || "";
+    }
+
+    updatePeerInfo() {
+        document.querySelector("#peer_name").value = this.state?.peer?.name || "";
+        document.querySelector("#peer_id").value = this.state?.peer?.id || "";
     }
 
     update() {
@@ -134,13 +155,15 @@ class App {
             document.querySelector(`#${id}`).classList.remove("none");
         });
 
-        this.updateMe();
+        this.updateMeInfo();
+        this.updatePeerInfo();
         this.updateBoard();
     }
-    
-    run() {
+
+    async run() {
+        this.setupEventListeners();
         this.setupBackend();
-        fetch("/register");
+        await fetch("/register");
         this.setupCells();
         this.update();
     }

@@ -16,9 +16,10 @@ func New(cfg *Config) (*Client, error) {
 		ctx:      ctx,
 		cancel:   cancel,
 		sseConns: map[string]*SSE{},
-		backend:  newBackend(fmt.Sprintf("http://%s", net.JoinHostPort(cfg.ServerHost, cfg.ServerPort))),
 		mode:     "wait",
 	}
+
+	client.backend = client.newBackend(fmt.Sprintf("http://%s", net.JoinHostPort(cfg.ServerHost, cfg.ServerPort)))
 
 	if err := client.setup(); err != nil {
 		return nil, err

@@ -7,3 +7,5 @@ type PayloadRegister struct {
 type PayloadStartGame struct {
 	PeerID string `json:"peer_id"`
 }
+
+type Kv map[string]any

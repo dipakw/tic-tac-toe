@@ -18,7 +18,7 @@ func main() {
 		ServerHost: "127.0.0.1",
 		ServerPort: "16000",
 		ClientHost: "0.0.0.0",
-		ClientPort: "21000",
+		ClientPort: "0",
 		UIFS:       fs,
 	})
 
