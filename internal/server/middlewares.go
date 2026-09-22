@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"net/http"
+	"ttt-game/internal/common"
 )
 
 type AuthUserID string
@@ -15,7 +16,6 @@ func (s *Server) authenticate(next http.HandlerFunc) http.HandlerFunc {
 		token := r.URL.Query().Get("token")
 
 		s.mu.RLock()
-		defer s.mu.RUnlock()
 
 		for _, u := range s.users {
 			if u.token == token {
@@ -25,11 +25,16 @@ func (s *Server) authenticate(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		if userID == "" {
-			s.send(w, http.StatusUnauthorized, map[string]any{
+			defer s.mu.RUnlock()
+
+			s.send(w, http.StatusUnauthorized, &common.Kv{
 				"message": "Unauthorized",
 			})
+
 			return
 		}
+
+		s.mu.RUnlock()
 
 		ctx := context.WithValue(r.Context(), userIDKey, userID)
 		next(w, r.WithContext(ctx))

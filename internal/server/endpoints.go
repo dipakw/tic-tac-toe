@@ -17,6 +17,9 @@ var upgrader = websocket.Upgrader{
 }
 
 func (s *Server) endpointRegister(w http.ResponseWriter, r *http.Request) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	payload, err := common.GetRequestPayloadAs[common.PayloadRegister](r)
 
 	if err != nil {
@@ -43,9 +46,7 @@ func (s *Server) endpointRegister(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	s.mu.Lock()
 	s.users[user.peer.ID] = user
-	s.mu.Unlock()
 
 	s.send(w, http.StatusOK, &common.User{
 		ID:    id,
@@ -63,9 +64,11 @@ func (s *Server) endpointAddLiveConnection(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	s.mu.Lock()
 	s.users[user.id].conn = &LiveConn{
 		ws: conn,
 	}
+	s.mu.Unlock()
 }
 
 func (s *Server) endpointStartGame(w http.ResponseWriter, r *http.Request) {
@@ -88,6 +91,9 @@ func (s *Server) endpointStartGame(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	me := s.getAuthenticedUser(r)
 
@@ -142,6 +148,9 @@ func (s *Server) endpointStartGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) endpointClick(w http.ResponseWriter, r *http.Request) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	click, err := common.GetRequestPayloadAs[common.PayloadClick](r)
 
 	if err != nil {
