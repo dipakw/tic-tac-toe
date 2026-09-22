@@ -57,23 +57,51 @@ func (c *Client) endpointRegister(w http.ResponseWriter, _ *http.Request) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if !c.registered {
-		if user, err := c.backend.register(); err != nil {
-			log.Println(err.Error())
-
-			c.send(w, http.StatusInternalServerError, map[string]any{
-				"message": "Failed to register the user",
-			})
-		} else {
-			c.registered = true
-			c.profile = user
-			c.mode = "ask" // After registration, ask who they want to play with.
-		}
+	end := func() {
+		c.send(w, http.StatusOK, map[string]any{})
+		go c.pushState()
 	}
 
-	c.send(w, http.StatusOK, map[string]any{})
+	if c.registered {
+		end()
+		return
+	}
 
-	go c.pushState()
+	// 1. Register the user.
+	user, err := c.backend.register()
+
+	if err != nil {
+		log.Println(err.Error())
+
+		c.send(w, http.StatusInternalServerError, map[string]any{
+			"message": "Failed to register the user",
+		})
+
+		return
+	}
+
+	// 2. Add live connection between this client and server.
+	conn, err := c.backend.addLiveConnection(user.Token)
+
+	if err != nil {
+		log.Println(err.Error())
+
+		c.send(w, http.StatusInternalServerError, map[string]any{
+			"message": "Failed to add the live connection",
+		})
+
+		return
+	}
+
+	// 3. Listen to server messages.
+	go c.backend.listen()
+
+	c.backend.ws = conn
+	c.registered = true
+	c.profile = user
+	c.mode = "ask" // After registration, ask who they want to play with.
+
+	end()
 }
 
 func (c *Client) endpointStartGame(w http.ResponseWriter, r *http.Request) {
@@ -84,6 +112,7 @@ func (c *Client) endpointStartGame(w http.ResponseWriter, r *http.Request) {
 	peerId = strings.TrimSpace(peerId)
 
 	if peerId == "" || peerId == c.profile.ID {
+		log.Println("the peer id", peerId, "is empty or self one")
 		c.send(w, http.StatusBadRequest, nil)
 		return
 	}
@@ -101,8 +130,6 @@ func (c *Client) endpointStartGame(w http.ResponseWriter, r *http.Request) {
 	c.send(w, http.StatusOK, &common.Kv{
 		"session_id": sessionId,
 	})
-
-	go c.backend.syncPeers(sessionId, c.profile.Token)
 }
 
 func (s *Client) endpointClick(w http.ResponseWriter, r *http.Request) {

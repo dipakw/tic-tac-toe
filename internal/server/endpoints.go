@@ -3,6 +3,7 @@ package server
 import (
 	"log"
 	"net/http"
+	"time"
 	"ttt-game/internal/common"
 	"ttt-game/internal/game"
 
@@ -117,8 +118,26 @@ func (s *Server) endpointStartGame(w http.ResponseWriter, r *http.Request) {
 	// Add session to the list.
 	s.sessions[sessId] = session
 
-	s.send(w, http.StatusOK, &common.Kv{
+	// Assign signs.
+	me.peer.Sign = "x"
+	peer.peer.Sign = "o"
+
+	// Send session ID to the client.
+	go s.send(w, http.StatusOK, &common.Kv{
 		"session_id": sessId,
+	})
+
+	time.Sleep(100 * time.Millisecond)
+
+	// Let each know the they have paired.
+	me.conn.ws.WriteJSON(&common.Kv{
+		"event": "paired",
+		"peer":  peer.peer,
+	})
+
+	peer.conn.ws.WriteJSON(&common.Kv{
+		"event": "paired",
+		"peer":  me.peer,
 	})
 }
 

@@ -73,6 +73,7 @@ func (c *Client) pushState() {
 	state := &State{
 		Mode:    c.mode,
 		Profile: c.profile.WithoutToken(),
+		Peer:    c.peer,
 	}
 
 	time.Sleep(100 * time.Millisecond)

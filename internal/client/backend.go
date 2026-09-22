@@ -3,8 +3,13 @@ package client
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
+	"strings"
 	"ttt-game/internal/common"
+	"ttt-game/internal/game"
+
+	"github.com/gorilla/websocket"
 )
 
 func (c *Client) newBackend(baseUrl string) *Backend {
@@ -26,6 +31,13 @@ func (b *Backend) register() (*common.User, error) {
 	return user, err
 }
 
+func (b *Backend) addLiveConnection(token string) (*websocket.Conn, error) {
+	url := fmt.Sprintf("%s/add-live-connection?token=%s", b.baseUrl, token)
+	url = strings.Replace(url, "http://", "ws://", 1)
+	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
+	return conn, err
+}
+
 func (b *Backend) playWith(peerId, token string) (string, error) {
 	if peerId == "" {
 		return "", errors.New("peer id is required")
@@ -44,8 +56,41 @@ func (b *Backend) playWith(peerId, token string) (string, error) {
 	return (*res)["session_id"].(string), nil
 }
 
-func (b *Backend) syncPeers(sessionId, token string) {
+func (b *Backend) listen() {
+	var msg common.Kv
 
+	for {
+		err := b.ws.ReadJSON(&msg)
+
+		if err != nil {
+			b.ws.Close()
+			log.Println("live connection with the server has broken")
+			break
+		}
+
+		event, ok := msg["event"].(string)
+
+		if !ok || event == "" {
+			continue
+		}
+
+		switch event {
+		case "paired":
+			if peer, err := common.DecodeAnyAs[game.Peer](msg["peer"]); err != nil {
+				log.Println("failed to get the peer info:", err.Error())
+			} else {
+				b.c.peer = &common.User{
+					ID:   peer.ID,
+					Name: peer.Name,
+				}
+
+				b.c.mode = "play"
+				b.c.pushState()
+			}
+
+		default:
+		}
+	}
 }
 
 func (b *Backend) click(token string) {

@@ -35,6 +35,7 @@ type Client struct {
 	registered bool
 	profile    *common.User
 	sessionId  string
+	peer       *common.User
 }
 
 type SSE struct {
@@ -53,4 +54,5 @@ type State struct {
 	Mode    string         `json:"mode"`
 	Rows    [][]*game.Cell `json:"rows"`
 	Profile *common.User   `json:"profile"`
+	Peer    *common.User   `json:"peer"`
 }
