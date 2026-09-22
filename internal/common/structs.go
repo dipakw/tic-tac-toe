@@ -8,4 +8,9 @@ type PayloadStartGame struct {
 	PeerID string `json:"peer_id"`
 }
 
+type PayloadClick struct {
+	X int `json:"x"`
+	Y int `json:"y"`
+}
+
 type Kv map[string]any

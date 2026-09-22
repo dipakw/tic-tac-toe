@@ -142,5 +142,40 @@ func (s *Server) endpointStartGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) endpointClick(w http.ResponseWriter, r *http.Request) {
+	click, err := common.GetRequestPayloadAs[common.PayloadClick](r)
 
+	if err != nil {
+		s.send(w, http.StatusBadRequest, &common.Kv{
+			"message": err.Error(),
+		})
+
+		return
+	}
+
+	me := s.getAuthenticedUser(r)
+	session := s.sessions[me.sessionId]
+
+	if session == nil {
+		return
+	}
+
+	session.Click(&game.Click{
+		PeerID: me.peer.ID,
+		X:      click.X,
+		Y:      click.Y,
+	})
+
+	go s.send(w, http.StatusOK, nil)
+
+	gameState, _ := session.State()
+
+	event := &common.Kv{
+		"event": "cells_data",
+		"data":  gameState.Rows,
+	}
+
+	// Give each peer the latest data.
+	for _, peerId := range session.Peers() {
+		s.users[peerId].conn.ws.WriteJSON(event)
+	}
 }

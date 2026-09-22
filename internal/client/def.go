@@ -36,6 +36,7 @@ type Client struct {
 	profile    *common.User
 	sessionId  string
 	peer       *common.User
+	rows       [][]*game.Cell
 }
 
 type SSE struct {

@@ -74,6 +74,7 @@ func (c *Client) pushState() {
 		Mode:    c.mode,
 		Profile: c.profile.WithoutToken(),
 		Peer:    c.peer,
+		Rows:    c.rows,
 	}
 
 	time.Sleep(100 * time.Millisecond)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"ttt-game/internal/common"
 )
@@ -132,6 +133,18 @@ func (c *Client) endpointStartGame(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (s *Client) endpointClick(w http.ResponseWriter, r *http.Request) {
+func (c *Client) endpointClick(w http.ResponseWriter, r *http.Request) {
+	var err error
+	var x int
+	var y int
 
+	if x, err = strconv.Atoi(r.URL.Query().Get("x")); err != nil {
+		return
+	}
+
+	if y, err = strconv.Atoi(r.URL.Query().Get("y")); err != nil {
+		return
+	}
+
+	c.backend.click(c.profile.Token, x, y)
 }

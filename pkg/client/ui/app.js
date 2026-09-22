@@ -36,7 +36,7 @@ const blocks = [
 
 class App {
     state = {
-        mode: "wait"
+        mode: "wait",
     };
 
     connected = false;
@@ -52,8 +52,7 @@ class App {
             return;
         }
 
-        const cell = this.getCell(x, y);
-        cell.innerHTML = "0"
+        fetch(`/click?x=${x}&y=${y}`);
     }
 
     setupCells() {
@@ -126,7 +125,7 @@ class App {
     updateBoard() {
         for (let x = 0; x < 3; x++) {
             for (let y = 0; y < 3; y++) {
-                const stateCell = this.state?.cells?.[i]?.[j] ?? {};
+                const stateCell = this.state?.rows?.[x]?.[y] ?? {};
                 const value = stateCell?.value ?? "&nbsp;";
                 const cell = this.getCell(x, y);
                 cell.innerHTML = value;

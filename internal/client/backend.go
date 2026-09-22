@@ -88,11 +88,24 @@ func (b *Backend) listen() {
 				b.c.pushState()
 			}
 
+		case "cells_data":
+			if rows, err := common.DecodeAnyAs[[][]*game.Cell](msg["data"]); err != nil {
+				log.Println("failed decode the cells:", err.Error())
+			} else {
+				b.c.rows = *rows
+				b.c.pushState()
+			}
+
 		default:
 		}
 	}
 }
 
-func (b *Backend) click(token string) {
+func (b *Backend) click(token string, x int, y int) {
+	url := fmt.Sprintf("%s/click?token=%s", b.baseUrl, token)
 
+	common.HttpRequest[common.Kv](http.MethodPost, url, &common.PayloadClick{
+		X: x,
+		Y: y,
+	})
 }
