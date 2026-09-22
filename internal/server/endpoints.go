@@ -43,8 +43,8 @@ func (s *Server) endpointRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	s.users[user.peer.ID] = user
+	s.mu.Unlock()
 
 	s.send(w, http.StatusOK, &common.User{
 		ID:    id,
@@ -54,21 +54,7 @@ func (s *Server) endpointRegister(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) endpointAddLiveConnection(w http.ResponseWriter, r *http.Request) {
-	var userId string
-
-	token := r.URL.Query().Get("token")
-
-	s.mu.RLock()
-
-	for _, u := range s.users {
-		if u.token == token {
-			userId = u.id
-			break
-		}
-	}
-
-	s.mu.RUnlock()
-
+	user := s.getAuthenticedUser(r)
 	conn, err := upgrader.Upgrade(w, r, nil)
 
 	if err != nil {
@@ -76,10 +62,7 @@ func (s *Server) endpointAddLiveConnection(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	s.users[userId].conn = &LiveConn{
+	s.users[user.id].conn = &LiveConn{
 		ws: conn,
 	}
 }

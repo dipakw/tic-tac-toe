@@ -35,6 +35,7 @@ func (s *Server) setup() error {
 	mux.HandleFunc("/register", s.endpointRegister)
 	mux.HandleFunc("/start-game", s.authenticate(s.endpointStartGame))
 	mux.HandleFunc("/click", s.authenticate(s.endpointClick))
+	mux.HandleFunc("/add-live-connection", s.authenticate(s.endpointAddLiveConnection))
 
 	s.server = &http.Server{
 		Handler: mux,

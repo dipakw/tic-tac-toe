@@ -13,7 +13,5 @@ func (s *Server) getAuthenticedUser(r *http.Request) *User {
 }
 
 func (s *Server) getUser(userId string) *User {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
 	return s.users[userId]
 }
